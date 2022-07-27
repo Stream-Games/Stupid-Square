@@ -1,30 +1,38 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
 
 public class PlayerMovements : MonoBehaviour
 { 
-    public float moveSpeed;
-    public float jumpSpeed;
-    public Rigidbody2D rb;
- 
-    void Start ()
+    private float horizontal;
+    public float speed = 8f;
+    public float jumpingPower = 16f;
+
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private LayerMask groundLayer;
+
+    void Update()
     {
-        rb = GetComponent <Rigidbody2D> ();
+        horizontal = Input.GetAxisRaw("Horizontal");
+
+        if ((Input.GetKeyDown("space") && IsGrounded()) || (Input.GetKeyDown(KeyCode.UpArrow) && IsGrounded()) || (Input.GetKeyDown(KeyCode.W) && IsGrounded()))
+        {
+            rb.velocity = new Vector2(rb.velocity.x, jumpingPower);
+        }
+
+        if ((Input.GetKeyUp("space") && rb.velocity.y > 0f) || (Input.GetKeyUp(KeyCode.UpArrow) && rb.velocity.y > 0f) || (Input.GetKeyUp(KeyCode.W) && rb.velocity.y > 0f))
+        {
+            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
+        }
     }
 
-    void Update ()
+    private void FixedUpdate()
     {
-      if (Input.GetKeyDown ("space"))
-      {
-        rb.AddForce(new Vector2(0, jumpSpeed), ForceMode2D.Impulse);
-      } 
+        rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
     }
- 
-    void FixedUpdate ()
+
+    private bool IsGrounded()
     {
-        float x = Input.GetAxis ("Horizontal");
-        Vector3 move = new Vector3 (x * moveSpeed, rb.velocity.y, 0f);
-        rb.velocity = move;
+        return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
     }
 }
